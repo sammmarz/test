@@ -1,0 +1,72 @@
+/*###ICF### Section handled by ICF editor, don't touch! ****/
+/*-Editor annotation file-*/
+/* IcfEditorFile="$TOOLKIT_DIR$\config\ide\IcfEditor\cortex_v1_0.xml" */
+/*-Specials-*/
+//define symbol __ICFEDIT_intvec_start__ = 0x08000200;
+define symbol __ICFEDIT_intvec_start__ = 0x08000000;
+/*-Memory Regions-*/
+define symbol __ICFEDIT_region_ROM_start__ = 0x08001718; 
+define symbol __ICFEDIT_region_ROM_end__   = 0x0803FFFF;
+define symbol __ICFEDIT_region_RAM_start__ = 0x20000000;
+define symbol __ICFEDIT_region_RAM_end__   = 0x20013FFF;
+/*-Sizes-*/
+define symbol __ICFEDIT_size_cstack__ = 0x1000;
+define symbol __ICFEDIT_size_heap__   = 0x1000;
+
+/*ID_struct Region*/
+define symbol __ICFEDIT_region_ID_struct_start__ = 0x08000200;
+define symbol __ICFEDIT_region_ID_struct_end__   = 0x08000238;
+
+/*Meter Region*/
+define symbol __ICFEDIT_region_METER_start__ = 0x08000238;
+define symbol __ICFEDIT_region_METER_end__   = 0x08002c24;
+
+
+
+
+
+/**** End of ICF editor section. ###ICF###*/
+
+define memory mem with size = 4G;
+
+
+define region ROM_ID_region   = mem:[from __ICFEDIT_region_ID_struct_start__  to __ICFEDIT_region_ID_struct_end__];
+define region ROM_METER_region   = mem:[from __ICFEDIT_region_METER_start__   to __ICFEDIT_region_METER_end__];
+define region ROM_region   = mem:[from __ICFEDIT_region_METER_end__   to __ICFEDIT_region_ROM_end__];
+define region RAM_region   = mem:[from __ICFEDIT_region_RAM_start__   to __ICFEDIT_region_RAM_end__];
+
+define block CSTACK    with alignment = 8, size = __ICFEDIT_size_cstack__   { };
+define block HEAP      with alignment = 8, size = __ICFEDIT_size_heap__     { };
+
+define block LIB_CODE with fixed order
+{
+    readonly object DblAdd.o,
+    readonly object DblCmpEq.o,
+    readonly object DblCmpGe.o,
+    readonly object DblCmpLe.o,
+    readonly object DblDiv.o,
+    readonly object DblMul.o,
+    readonly object DblSub.o,
+    readonly object S32ToDbl.o,
+    readonly object U32ToDbl.o,
+    readonly object DblToS32.o,
+    readonly object DblToU32.o
+};
+initialize by copy { readwrite };
+place in ROM_ID_region {readonly section ID_REGION};
+place at address mem:__ICFEDIT_intvec_start__ { readonly section .intvec };
+place at address mem:__ICFEDIT_region_METER_start__ { readonly section METER_REGION };
+//place in ROM_METER_region {readonly  section METER_REGION};
+place at address mem:__ICFEDIT_region_METER_end__ + 4 {block LIB_CODE};
+place in ROM_region   { readonly};/*, last block LIB_CODE*/ 
+
+
+//place at address mem:__ICFEDIT_params_start__ {section PARAMS};
+place in RAM_region   { readwrite,
+                        block CSTACK, block HEAP };
+
+define symbol __region_EEPROM_start__ = 0x08080000;
+define symbol __region_EEPROM_end__   = 0x08083FFF;
+define region EEPROM_region = mem:[from __region_EEPROM_start__   to __region_EEPROM_end__];
+
+place in EEPROM_region  { section .eeprom };
